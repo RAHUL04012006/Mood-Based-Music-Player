@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood-Based Music Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4">
+                <i class="fas fa-music text-yellow-400 mr-3"></i>
+                Mood Music Player
+            </h1>
+            <p class="text-gray-300 text-lg">Let AI detect your emotion and play the perfect song for your mood</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <!-- Webcam Section -->
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-semibold text-white mb-2">
+                        <i class="fas fa-camera text-blue-400 mr-2"></i>
+                        Emotion Detection
+                    </h2>
+                    <p class="text-gray-300">Position yourself in front of the camera</p>
+                </div>
+
+                <!-- Camera Container -->
+                <div class="relative mb-6">
+                    <video id="webcam" autoplay muted class="w-full h-64 bg-black rounded-lg object-cover"></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                    
+                    <!-- Camera Overlay -->
+                    <div class="absolute inset-0 border-2 border-dashed border-blue-400/50 rounded-lg pointer-events-none">
+                        <div class="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-blue-400"></div>
+                        <div class="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-blue-400"></div>
+                        <div class="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-blue-400"></div>
+                        <div class="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-blue-400"></div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="space-y-4">
+                    <div class="flex gap-3">
+                        <button id="startCamera" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                            <i class="fas fa-play mr-2"></i>Start Camera
+                        </button>
+                        <button id="detectEmotion" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors" disabled>
+                            <i class="fas fa-brain mr-2"></i>Detect Emotion
+                        </button>
+                    </div>
+                    
+                    <!-- Loading Indicator -->
+                    <div id="loadingIndicator" class="hidden text-center">
+                        <div class="inline-flex items-center text-white">
+                            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                            Analyzing your emotion...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emotion Results -->
+                <div id="emotionResults" class="hidden mt-6 p-4 bg-black/30 rounded-lg">
+                    <div class="text-center">
+                        <div class="text-3xl mb-2" id="emotionEmoji">😊</div>
+                        <div class="text-xl font-semibold text-white mb-1" id="emotionName">Happy</div>
+                        <div class="text-sm text-gray-300" id="emotionConfidence">95% confidence</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Music Player Section -->
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-semibold text-white mb-2">
+                        <i class="fas fa-headphones text-purple-400 mr-2"></i>
+                        Your Mood Music
+                    </h2>
+                    <p class="text-gray-300">Perfect songs for your current emotion</p>
+                </div>
+
+                <!-- Music Player Container -->
+                <div id="musicPlayer" class="text-center">
+                    <div id="noMusicState" class="py-16">
+                        <div class="text-6xl text-gray-400 mb-4">🎵</div>
+                        <p class="text-gray-400 text-lg">Detect your emotion to start playing music</p>
+                    </div>
+
+                    <div id="musicContainer" class="hidden">
+                        <div class="aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                            <iframe id="youtubePlayer" 
+                                    width="100%" 
+                                    height="100%" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                            </iframe>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button id="newSong" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                                <i class="fas fa-random mr-2"></i>Play Another Song
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Messages -->
+        <div id="errorMessage" class="hidden fixed top-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg max-w-md">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span id="errorText">An error occurred</span>
+                <button id="closeError" class="ml-auto text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Emotion Legend -->
+        <div class="mt-12 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+            <h3 class="text-xl font-semibold text-white mb-4 text-center">
+                <i class="fas fa-palette mr-2"></i>Emotion Categories
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="text-center p-3 bg-white/5 rounded-lg">
+                    <div class="text-2xl mb-1">😊</div>
+                    <div class="text-white font-medium">Happy</div>
+                    <div class="text-xs text-gray-400">Upbeat songs</div>
+                </div>
+                <div class="text-center p-3 bg-white/5 rounded-lg">
+                    <div class="text-2xl mb-1">😢</div>
+                    <div class="text-white font-medium">Sad</div>
+                    <div class="text-xs text-gray-400">Emotional ballads</div>
+                </div>
+                <div class="text-center p-3 bg-white/5 rounded-lg">
+                    <div class="text-2xl mb-1">😠</div>
+                    <div class="text-white font-medium">Angry</div>
+                    <div class="text-xs text-gray-400">Intense music</div>
+                </div>
+                <div class="text-center p-3 bg-white/5 rounded-lg">
+                    <div class="text-2xl mb-1">😐</div>
+                    <div class="text-white font-medium">Neutral</div>
+                    <div class="text-xs text-gray-400">Chill vibes</div>
+                </div>
+                <div class="text-center p-3 bg-white/5 rounded-lg">
+                    <div class="text-2xl mb-1">😲</div>
+                    <div class="text-white font-medium">Surprise</div>
+                    <div class="text-xs text-gray-400">Exciting tracks</div>
+                </div>
+                <div class="text-center p-3 bg-white/5 rounded-lg">
+                    <div class="text-2xl mb-1">🤢</div>
+                    <div class="text-white font-medium">Disgust</div>
+                    <div class="text-xs text-gray-400">Alternative music</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
