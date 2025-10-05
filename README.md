@@ -5,6 +5,7 @@
 Mood-Based Music Player is a web application that detects the user's emotion through their webcam and plays a YouTube playlist corresponding to the detected mood. It uses facial emotion recognition powered by DeepFace and Flask for the backend server.
 
 
+![Image](https://github.com/user-attachments/assets/78eb16fd-ba1b-4a2a-8d93-ade0e52b27b8)
 
 ## Features
 
